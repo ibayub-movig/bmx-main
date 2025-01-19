@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Clock, Phone, Globe, DollarSign, Award, Calendar, Utensils } from 'lucide-react';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
-import { generateRestaurantSchema, RestaurantJsonLd  } from '@/lib/schemas';
+import { generateRestaurantSchema} from '@/lib/schemas';
 
 
 export async function generateStaticParams() {
@@ -98,10 +98,7 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
   const description = restaurant[`description_${lang}` as const] ?? undefined;
   const url = `https://bestcdmx.com/${lang}/restaurants/${slug}`;
   const imageUrl = restaurant.image_url;
-
-  // Generate the schema
-  const schema = generateRestaurantSchema(restaurant, lang);
-
+  
   return {
     title,
     description,
@@ -127,12 +124,6 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
         en: `/en/restaurants/${slug}`,
         es: `/es/restaurants/${slug}`,
       },
-    },
-    // Add the schema directly to the head instead of using metadata.other
-    formatDetection: {
-      email: false,
-      address: false,
-      telephone: false,
     }
   };
 }
@@ -168,11 +159,17 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
   if (!restaurant) {
     notFound();
   }
+  const schema = generateRestaurantSchema(restaurant, lang);
 
   return (
     <>
-      <RestaurantJsonLd restaurant={restaurant} lang={lang} />
-      <div>
+     <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(schema)
+        }}
+      />
+            <div>
         {/* Breadcrumbs */}
         <div className="border-b">
           <nav className="container mx-auto px-4 py-3">

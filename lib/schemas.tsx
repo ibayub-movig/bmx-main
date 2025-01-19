@@ -1,7 +1,6 @@
 // lib/schemas.tsx
 import type { Database } from './database.types';
-import React from 'react';
-import Head from 'next/head';
+import { type Locale } from '@/lib/i18n';
 
 type RestaurantWithRelations = Database['public']['Tables']['restaurants']['Row'] & {
   restaurant_types_junction: {
@@ -24,9 +23,7 @@ type RestaurantWithRelations = Database['public']['Tables']['restaurants']['Row'
   };
 };
 
-type LangField = 'en' | 'es';
-
-export const generateRestaurantSchema = (restaurant: RestaurantWithRelations, lang: LangField) => {
+export const generateRestaurantSchema = (restaurant: RestaurantWithRelations, lang: Locale) => {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Restaurant',
@@ -70,22 +67,5 @@ export const generateRestaurantSchema = (restaurant: RestaurantWithRelations, la
     })
   };
 
-  return [JSON.stringify(schema)];
-};
-
-export const RestaurantJsonLd: React.FC<{
-  restaurant: RestaurantWithRelations;
-  lang: LangField;
-}> = ({ restaurant, lang }) => {
-  return (
-    <Head>
-      <script
-        key="restaurant-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: generateRestaurantSchema(restaurant, lang)[0]
-        }}
-      />
-    </Head>
-  );
+  return schema;
 };
