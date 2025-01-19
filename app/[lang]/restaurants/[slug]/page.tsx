@@ -99,18 +99,8 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
   const url = `https://bestcdmx.com/${lang}/restaurants/${slug}`;
   const imageUrl = restaurant.image_url;
 
-  // Generate the schema for the restaurant
-  const schema = generateRestaurantSchema({
-    ...restaurant,
-    categories: restaurant.restaurant_categories
-      ?.filter(rc => rc.categories)
-      .map(rc => ({
-        id: rc.categories.id,
-        name_en: rc.categories.name_en,
-        name_es: rc.categories.name_es
-      })) || [],
-    neighborhood: restaurant.neighborhoods
-  }, lang);
+  // Generate the schema
+  const schema = generateRestaurantSchema(restaurant, lang);
 
   return {
     title,
@@ -138,9 +128,11 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
         es: `/es/restaurants/${slug}`,
       },
     },
-    other: {
-      // Fix: Schema.org JSON-LD
-      'application/ld+json': schema
+    // Add the schema directly to the head instead of using metadata.other
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
     }
   };
 }
@@ -179,6 +171,7 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
 
   return (
     <>
+      <RestaurantJsonLd restaurant={restaurant} lang={lang} />
       <div>
         {/* Breadcrumbs */}
         <div className="border-b">
