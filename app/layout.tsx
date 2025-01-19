@@ -25,6 +25,9 @@ export const metadata: Metadata = {
     default: 'BestCDMX - Discover the Best of Mexico City',
   },
   description: 'Your ultimate guide to restaurants, attractions, and experiences in Mexico City',
+  icons: {
+    icon: '/favicon.ico',
+  },
   robots: {
     index: true,
     follow: true,
