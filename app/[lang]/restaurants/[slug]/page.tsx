@@ -127,7 +127,8 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
       },
     },
     other: {
-      'application/ld+json': JSON.stringify(generateRestaurantSchema(restaurant, lang))
+      'application/ld+json': generateRestaurantSchema(restaurant, lang)
+
     }
   };
 }
