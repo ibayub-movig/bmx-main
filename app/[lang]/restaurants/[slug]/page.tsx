@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Clock, Phone, Globe, DollarSign, Award, Calendar, Utensils } from 'lucide-react';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
-import { generateRestaurantSchema } from '@/lib/schemas';
+import { generateRestaurantSchema, RestaurantJsonLd  } from '@/lib/schemas';
 
 
 export async function generateStaticParams() {
@@ -39,9 +39,9 @@ async function getRestaurant(slug: string) {
           name_es
         )
       ),
-      restaurant_categories (
+      restaurant_categories!inner (
         category_id,
-        categories!inner (
+        categories (
           id,
           name_en,
           name_es
@@ -62,12 +62,9 @@ async function getRestaurant(slug: string) {
     return null;
   }
 
-  return {
+  // Transform the data to match the expected schema types
+  const transformedRestaurant = {
     ...restaurant,
-    restaurant_types_junction: restaurant.restaurant_types_junction?.map(junction => ({
-      type_id: junction.type_id,
-      restaurant_types: junction.restaurant_types
-    })) || [],
     categories: restaurant.restaurant_categories
       ?.filter(rc => rc.categories)
       .map(rc => ({
@@ -77,6 +74,8 @@ async function getRestaurant(slug: string) {
       })) || [],
     neighborhood: restaurant.neighborhoods
   };
+
+  return transformedRestaurant;
 }
 
 type Props = {
@@ -99,6 +98,19 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
   const description = restaurant[`description_${lang}` as const] ?? undefined;
   const url = `https://bestcdmx.com/${lang}/restaurants/${slug}`;
   const imageUrl = restaurant.image_url;
+
+  // Generate the schema for the restaurant
+  const schema = generateRestaurantSchema({
+    ...restaurant,
+    categories: restaurant.restaurant_categories
+      ?.filter(rc => rc.categories)
+      .map(rc => ({
+        id: rc.categories.id,
+        name_en: rc.categories.name_en,
+        name_es: rc.categories.name_es
+      })) || [],
+    neighborhood: restaurant.neighborhoods
+  }, lang);
 
   return {
     title,
@@ -127,8 +139,8 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
       },
     },
     other: {
-      'application/ld+json': generateRestaurantSchema(restaurant, lang)
-
+      // Fix: Schema.org JSON-LD
+      'application/ld+json': schema
     }
   };
 }
