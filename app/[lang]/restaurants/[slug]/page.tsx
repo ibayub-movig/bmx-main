@@ -96,20 +96,21 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
   
   const title = `${restaurant.name} - ${restaurant.neighborhood.name}, Mexico City`;
   const description = restaurant[`description_${lang}` as const] ?? undefined;
-  const url = `https://bestcdmx.com/${lang}/restaurants/${slug}`;
+  const baseUrl = 'https://bestcdmx.com';
+  const currentUrl = `${baseUrl}/${lang}/restaurants/${slug}`;
   const imageUrl = restaurant.image_url;
   
   return {
     title,
     description,
-    metadataBase: new URL('https://bestcdmx.com'),
+    metadataBase: new URL(baseUrl),
     openGraph: {
       title,
       description,
       images: imageUrl ? [imageUrl] : undefined,
       type: 'article',
       locale: lang,
-      url,
+      url: currentUrl,
       siteName: 'BestCDMX',
     },
     twitter: {
@@ -119,10 +120,10 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
       images: imageUrl ? [imageUrl] : undefined,
     },
     alternates: {
-      canonical: url,
+      canonical: currentUrl,
       languages: {
-        en: `/en/restaurants/${slug}`,
-        es: `/es/restaurants/${slug}`,
+        en: `${baseUrl}/en/restaurants/${slug}`,
+        es: `${baseUrl}/es/restaurants/${slug}`,
       },
     }
   };

@@ -1,0 +1,33 @@
+{
+    "redirects": [
+      { 
+        "source": "/restaurants",
+        "destination": "/en/restaurants",
+        "permanent": true
+      },
+      { 
+        "source": "/restaurant/:path*",
+        "destination": "/en/restaurants",
+        "permanent": true
+      },
+      { 
+        "source": "/category/:path*",
+        "destination": "/en/cuisines",
+        "permanent": true
+      },
+      { 
+        "source": "/neighborhood/:path*",
+        "destination": "/en/neighborhoods",
+        "permanent": true
+      },  { 
+        "source": "/en/restaurant/:slug*",
+        "destination": "/en/restaurants/:slug*",
+        "permanent": true
+      },
+      { 
+        "source": "/type/:path*",
+        "destination": "/en",
+        "permanent": true
+      }
+    ]
+  }
