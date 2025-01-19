@@ -25,7 +25,7 @@ type RestaurantWithRelations = Database['public']['Tables']['restaurants']['Row'
 type LangField = 'en' | 'es';
 
 export const generateRestaurantSchema = (restaurant: RestaurantWithRelations, lang: LangField) => {
-  const schema = [{
+  const schema = {
     '@context': 'https://schema.org',
     '@type': 'Restaurant',
     name: restaurant.name,
@@ -66,7 +66,8 @@ export const generateRestaurantSchema = (restaurant: RestaurantWithRelations, la
         longitude: restaurant.longitude
       }
     })
-  }];
+  };
 
-  return schema;
+  // Return stringified schema in an array
+  return [JSON.stringify(schema)];
 };
