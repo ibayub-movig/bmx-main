@@ -10,17 +10,46 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
+  const baseUrl = 'https://www.bestcdmx.com';
+  const path = '/neighborhoods';
+  const currentUrl = `${baseUrl}/${lang}${path}`;
+
+  const title = lang === 'en' ? 'Neighborhoods | BestCDMX' : 'Colonias | BestCDMX';
+  const description = lang === 'en' 
+    ? 'Explore restaurants by neighborhood in Mexico City. Find the best places to eat in each area.'
+    : 'Explora restaurantes por colonia en la Ciudad de México. Encuentra los mejores lugares para comer en cada zona.';
+
   return {
-    title: lang === 'en' ? 'Neighborhoods | BestCDMX' : 'Colonias | BestCDMX',
-    description: lang === 'en' 
-      ? 'Explore restaurants by neighborhood in Mexico City. Find the best places to eat in each area.'
-      : 'Explora restaurantes por colonia en la Ciudad de México. Encuentra los mejores lugares para comer en cada zona.',
+    title,
+    description,
+    metadataBase: new URL(baseUrl),
     alternates: {
+      canonical: currentUrl,
       languages: {
-        en: '/en/neighborhoods',
-        es: '/es/neighborhoods',
+        en: `${baseUrl}/en${path}`,
+        es: `${baseUrl}/es${path}`,
       },
     },
+    openGraph: {
+      title,
+      description,
+      url: currentUrl,
+      siteName: 'BestCDMX',
+      locale: lang === 'en' ? 'en_US' : 'es_MX',
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    }
   };
 }
 

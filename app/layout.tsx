@@ -9,6 +9,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
+const BASE_URL = 'https://www.bestcdmx.com'
 
 if (!GA_ID) {
   console.warn('Google Analytics ID is not defined in environment variables')
@@ -19,7 +20,7 @@ if (!GTM_ID) {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://bestcdmx.com'),
+  metadataBase: new URL(BASE_URL),
   title: {
     template: '%s | BestCDMX',
     default: 'BestCDMX - Discover the Best of Mexico City',
@@ -28,20 +29,85 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
+  // SEO optimizations
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  // Language alternates
+  alternates: {
+    canonical: BASE_URL,
+    languages: {
+      'en': `${BASE_URL}/en`,
+      'es': `${BASE_URL}/es`,
+    },
+  },
+  // Open Graph
+  openGraph: {
+    title: 'BestCDMX - Discover the Best of Mexico City',
+    description: 'Your ultimate guide to restaurants, attractions, and experiences in Mexico City',
+    url: BASE_URL,
+    siteName: 'BestCDMX',
+    locale: 'es_MX',
+    type: 'website',
+    alternateLocale: ['en_US'],
+  },
+  // Twitter
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BestCDMX',
+    description: 'Your ultimate guide to restaurants, attractions, and experiences in Mexico City',
+  },
+  // Verification
+  verification: {
+    google: 'your-google-site-verification', // Add your verification code
+  },
+  // Other metadata
+  category: 'travel',
+  formatDetection: {
+    telephone: true,
+    date: true,
+    address: true,
+    email: true,
   },
 }
 
 export default function RootLayout({
   children,
+  params,
 }: {
   children: React.ReactNode
+  params: { lang: string }
 }) {
+  const lang = params?.lang || 'es'
+
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <head>
+        {/* Schema.org markup for Google */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "BestCDMX",
+              "url": BASE_URL,
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": `${BASE_URL}/search?q={search_term_string}`,
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
         {GTM_ID && (
           <Script id="gtm" strategy="afterInteractive">
             {`

@@ -2,9 +2,9 @@ import { Locale, locales } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
 import { Metadata } from 'next';
-import { RestaurantsList } from '../../restaurants/components/restaurants-list';
+import { RestaurantsListWrapper } from './components/restaurants-list-wrapper';
+import { Breadcrumbs } from './components/breadcrumbs';
 
 export async function generateStaticParams() {
   const { data: neighborhoods } = await supabase
@@ -93,15 +93,38 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
     };
   }
   
+  const titleFromDb = neighborhood[`meta_title_${lang}` as const];
+  const descriptionFromDb = neighborhood[`meta_description_${lang}` as const];
+  
+  const title = titleFromDb || neighborhood.name;  // Note: using name since schema shows single name field
+  const description = descriptionFromDb || (neighborhood[`description_${lang}` as const] ?? undefined);
+  const baseUrl = 'https://www.bestcdmx.com';
+  const currentUrl = `${baseUrl}/${lang}/neighborhoods/${slug}`;
+  
   return {
-    title: neighborhood[`meta_title_${lang}` as const] || neighborhood.name,
-    description: neighborhood[`meta_description_${lang}` as const] || neighborhood[`description_${lang}` as const],
+    title,
+    description,
+    metadataBase: new URL(baseUrl),
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      locale: lang,
+      url: currentUrl,
+      siteName: 'BestCDMX',
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
     alternates: {
+      canonical: currentUrl,
       languages: {
         en: `/en/neighborhoods/${slug}`,
         es: `/es/neighborhoods/${slug}`,
       },
-    },
+    }
   };
 }
 
@@ -112,45 +135,14 @@ export default async function NeighborhoodPage({ params: { lang, slug } }: Props
     notFound();
   }
 
-  // Get all categories and neighborhoods for the filters
   const [{ data: categories }, { data: neighborhoods }] = await Promise.all([
     supabase.from('categories').select('*').order('name_en'),
     supabase.from('neighborhoods').select('*').order('name')
   ]);
 
   return (
-    <div>
-      {/* Breadcrumbs */}
-      <div className="border-b">
-        <nav className="container mx-auto px-4 py-3">
-          <ol className="flex items-center space-x-2 text-sm">
-            <li>
-              <Link href={`/${lang}`} className="text-muted-foreground hover:text-foreground flex items-center">
-                <Home className="h-4 w-4" />
-              </Link>
-            </li>
-            <li>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </li>
-            <li>
-              <Link 
-                href={`/${lang}/neighborhoods`} 
-                className="text-muted-foreground hover:text-foreground"
-              >
-                {lang === 'en' ? 'Neighborhoods' : 'Colonias'}
-              </Link>
-            </li>
-            <li>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </li>
-            <li>
-              <span className="font-medium">
-                {neighborhood.name}
-              </span>
-            </li>
-          </ol>
-        </nav>
-      </div>
+    <>
+      <Breadcrumbs lang={lang} neighborhoodName={neighborhood.name} />
 
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold mb-4">
@@ -172,16 +164,14 @@ export default async function NeighborhoodPage({ params: { lang, slug } }: Props
           </Link>
         </p>
         
-        <RestaurantsList
+        <RestaurantsListWrapper
           initialRestaurants={neighborhood.restaurants}
           initialCategories={categories || []}
           initialNeighborhoods={neighborhoods || []}
           lang={lang}
-          lockedFilters={{
-            neighborhoods: [neighborhood.id]
-          }}
+          neighborhoodId={neighborhood.id}
         />
       </div>
-    </div>
+    </>
   );
 }

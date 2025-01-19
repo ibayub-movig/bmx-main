@@ -95,15 +95,38 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
     };
   }
   
+  const titleFromDb = category[`meta_title_${lang}` as const];
+  const descriptionFromDb = category[`meta_description_${lang}` as const];
+  
+  const title = titleFromDb || category[`name_${lang}` as const];
+  const description = descriptionFromDb || (category[`description_${lang}` as const] ?? undefined);
+  const baseUrl = 'https://www.bestcdmx.com';
+  const currentUrl = `${baseUrl}/${lang}/cuisines/${slug}`;
+  
   return {
-    title: category[`meta_title_${lang}` as const] || category[`name_${lang}` as const],
-    description: category[`meta_description_${lang}` as const] || category[`description_${lang}` as const],
+    title,
+    description,
+    metadataBase: new URL(baseUrl),
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      locale: lang,
+      url: currentUrl,
+      siteName: 'BestCDMX',
+    },
+    twitter: {
+      card: 'summary',  // Changed to 'summary' since we have no image
+      title,
+      description,
+    },
     alternates: {
+      canonical: currentUrl,
       languages: {
         en: `/en/cuisines/${slug}`,
         es: `/es/cuisines/${slug}`,
       },
-    },
+    }
   };
 }
 

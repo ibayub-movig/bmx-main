@@ -8,6 +8,7 @@ import { Star, MapPin, Clock, Phone, Globe, DollarSign, Award, Calendar, Utensil
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { generateRestaurantSchema} from '@/lib/schemas';
+import Image from 'next/image';
 
 
 export async function generateStaticParams() {
@@ -93,12 +94,16 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
       title: '404 - Not Found'
     };
   }
-  
-  const title = `${restaurant.name} - ${restaurant.neighborhood.name}, Mexico City`;
-  const description = restaurant[`description_${lang}` as const] ?? undefined;
-  const baseUrl = 'https://bestcdmx.com';
-  const currentUrl = `${baseUrl}/${lang}/restaurants/${slug}`;
-  const imageUrl = restaurant.image_url;
+  const titleFromDb = restaurant[`meta_title_${lang}` as const];
+const descriptionFromDb = restaurant[`meta_description_${lang}` as const];
+
+// Fallback to constructed title if meta_title isn't set
+const title = titleFromDb || `${restaurant.name} - ${restaurant.neighborhood.name}, Mexico City`;
+// Add parentheses to properly handle the || and ?? operators
+const description = descriptionFromDb || (restaurant[`description_${lang}` as const] ?? undefined);
+const baseUrl = 'https://www.bestcdmx.com';  // Now with www
+const currentUrl = `${baseUrl}/${lang}/restaurants/${slug}`;
+const imageUrl = restaurant.image_url;
   
   return {
     title,
@@ -206,10 +211,12 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
         <article className="min-h-screen">
           {/* Hero Section */}
           <div className="relative h-[50vh] min-h-[400px] w-full">
-            <img
+          <Image
               src={restaurant.image_url}
               alt={restaurant.name}
-              className="absolute inset-0 w-full h-full object-cover"
+              fill
+              priority
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
@@ -260,7 +267,7 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
                   {lang === 'en' ? 'About' : 'Acerca de'}
                 </a>
                 <a href="#ratings" className="text-muted-foreground hover:text-foreground">
-                  {lang === 'en' ? 'Ratings & Reviews' : 'Calificaciones y Reseñas'}
+                  {lang === 'en' ? 'Reviews' : 'Reseñas'}
                 </a>
                 <a href="#hours" className="text-muted-foreground hover:text-foreground">
                   {lang === 'en' ? 'Hours' : 'Horario'}
@@ -345,7 +352,7 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
 
                 {/* Local Tips */}
                 {restaurant.local_tips && (
-                  <div className="bg-primary/5 border border-primary/10 rounded-lg p-6">
+                  <div className="bg-rose-50 border border-red-200 rounded-lg p-6">
                     <h3 className="text-lg font-semibold mb-4">
                       <span className="flex items-center">
                         <Award className="w-5 h-5 mr-2 text-primary" />
@@ -367,7 +374,7 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
 
             <section id="ratings" className="scroll-mt-24">
               <h2 className="text-2xl font-bold mb-6">
-                {lang === 'en' ? 'Ratings & Reviews' : 'Calificaciones y Reseñas'}
+                {lang === 'en' ? 'Reviews' : 'Reseñas'}
               </h2>
               <div className="space-y-8">
                 {/* Overall Score */}
@@ -473,7 +480,7 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
               </h2>
               <div className="space-y-8">
                 {restaurant.smart_visit && (
-                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                  <div className="bg-rose-50 border border-red-200 rounded-lg p-4">
                     <h3 className="text-lg font-semibold mb-2 flex items-center">
                       <Clock className="w-5 h-5 mr-2 text-primary" />
                       {lang === 'en' ? 'Smart Visit' : 'Visita Inteligente'}
@@ -562,11 +569,13 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
                     rel="noopener noreferrer"
                     className="block aspect-[16/9] w-full rounded-lg overflow-hidden border hover:opacity-95 transition-opacity"
                   >
-                    <img 
-                      src={`https://api.mapbox.com/styles/v1/mapbox/light-v11/static/pin-l+f43f5e(${restaurant.longitude},${restaurant.latitude})/${restaurant.longitude},${restaurant.latitude},14,0/800x450@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}
-                      alt={`Map showing location of ${restaurant.name}`}
-                      className="w-full h-full object-cover"
-                    />
+                  <Image 
+                    src={`https://api.mapbox.com/styles/v1/mapbox/light-v11/static/pin-l+f43f5e(${restaurant.longitude},${restaurant.latitude})/${restaurant.longitude},${restaurant.latitude},14,0/800x450@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}
+                    alt={`Map showing location of ${restaurant.name}`}
+                    width={800}
+                    height={450}
+                    className="w-full h-full object-cover"
+                  />
                   </Link>
                 )}
               </div>

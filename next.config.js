@@ -5,6 +5,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: { 
+    domains: ['api.mapbox.com'],
     remotePatterns: [
       {
         protocol: 'https',

@@ -4,22 +4,51 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ChevronRight, Home, BookOpen } from 'lucide-react';
 import { Metadata } from 'next';
+import Image from 'next/image';
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
 export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
+  const baseUrl = 'https://www.bestcdmx.com';
+  const path = '/guides';
+  const currentUrl = `${baseUrl}/${lang}${path}`;
+
+  const title = lang === 'en' ? 'Guides | BestCDMX' : 'Guías | BestCDMX';
+  const description = lang === 'en' 
+    ? 'Explore curated guides to the best restaurants in Mexico City. Find local favorites and hidden gems.'
+    : 'Explora guías curadas de los mejores restaurantes en la Ciudad de México. Encuentra favoritos locales y joyas ocultas.';
+
   return {
-    title: lang === 'en' ? 'Guides | BestCDMX' : 'Guías | BestCDMX',
-    description: lang === 'en' 
-      ? 'Explore curated guides to the best restaurants in Mexico City. Find local favorites and hidden gems.'
-      : 'Explora guías curadas de los mejores restaurantes en la Ciudad de México. Encuentra favoritos locales y joyas ocultas.',
+    title,
+    description,
     alternates: {
+      canonical: currentUrl,
       languages: {
-        en: '/en/guides',
-        es: '/es/guides',
+        en: `${baseUrl}/en${path}`,
+        es: `${baseUrl}/es${path}`,
       },
+    },
+    openGraph: {
+      title,
+      description,
+      url: currentUrl,
+      siteName: 'BestCDMX',
+      locale: lang === 'en' ? 'en_US' : 'es_MX',
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
   };
 }
@@ -88,10 +117,11 @@ export default async function GuidesPage({ params: { lang } }: { params: { lang:
                 <CardHeader className="p-0">
                   {guide.cover_image_path ? (
                     <div className="relative aspect-[4/3] overflow-hidden">
-                      <img
+                      <Image
                         src={guide.cover_image_path}
                         alt={guide[`name_${lang}` as const]}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                     </div>

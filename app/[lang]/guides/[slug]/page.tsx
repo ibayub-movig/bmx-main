@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Utensils } from 'lucide-react';
 import { SubscribeButton } from '../../components/subscribe-button';
+import Image from 'next/image';
 
 type GuideItem = {
   guide_id: string;
@@ -138,16 +139,42 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
       title: '404 - Not Found'
     };
   }
+
+  const titleFromDb = guide[`meta_title_${lang}` as const];
+  const descriptionFromDb = guide[`meta_description_${lang}` as const];
+  
+  const title = titleFromDb || guide[`name_${lang}` as const];
+  const description = descriptionFromDb ?? undefined;
+  const baseUrl = 'https://www.bestcdmx.com';
+  const currentUrl = `${baseUrl}/${lang}/guides/${slug}`;
+  const imageUrl = guide.cover_image_path;
   
   return {
-    title: guide[`meta_title_${lang}` as const] || guide[`name_${lang}` as const],
-    description: guide[`meta_description_${lang}` as const],
+    title,
+    description,
+    metadataBase: new URL(baseUrl),
+    openGraph: {
+      title,
+      description,
+      images: imageUrl ? [imageUrl] : undefined,
+      type: 'article',
+      locale: lang,
+      url: currentUrl,
+      siteName: 'BestCDMX',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: imageUrl ? [imageUrl] : undefined,
+    },
     alternates: {
+      canonical: currentUrl,
       languages: {
         en: `/en/guides/${slug}`,
         es: `/es/guides/${slug}`,
       },
-    },
+    }
   };
 }
 
@@ -195,13 +222,15 @@ export default async function GuidePage({ params: { lang, slug } }: Props) {
       <div className="container mx-auto px-4 py-8">
         {/* Cover Image */}
         {guide.cover_image_path && (
-          <div className="relative w-full h-[400px] rounded-lg overflow-hidden mb-8">
-            <img
-              src={guide.cover_image_path}
-              alt={guide[`name_${lang}` as const]}
-              className="w-full h-full object-cover"
-            />
-          </div>
+           <div className="relative w-full h-[400px] rounded-lg overflow-hidden mb-8">
+           <Image
+             src={guide.cover_image_path}
+             alt={guide[`name_${lang}` as const]}
+             fill
+             className="object-cover"
+             priority
+           />
+         </div>
         )}
 
         <h1 className="text-4xl font-bold mb-4">
@@ -261,11 +290,12 @@ export default async function GuidePage({ params: { lang, slug } }: Props) {
                 <article key={item.item_id} id={restaurant.slug} className="group scroll-mt-24">
                   <div className="mb-8">
                     <div className="grid md:grid-cols-2 gap-8">
-                      <div className="aspect-[4/3] overflow-hidden rounded-lg">
-                        <img 
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
+                        <Image 
                           src={restaurant.image_url} 
                           alt={restaurant.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                         />
                       </div>
                       <div className="flex flex-col justify-center">
