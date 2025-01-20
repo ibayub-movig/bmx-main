@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import Script from 'next/script'
+import {Analytics} from '@vercel/analytics/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -133,6 +134,7 @@ export default function RootLayout({
         )}
         {children}
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
+        <Analytics/>
       </body>
     </html>
   )
