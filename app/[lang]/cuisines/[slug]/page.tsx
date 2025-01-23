@@ -3,9 +3,7 @@ import { Metadata } from 'next';
 import { Locale } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
-import { CuisineContent } from '@/app/[lang]/cuisines/[slug]/cuisine-content';
-
-export const revalidate = 3600;
+import { RestaurantsList } from '../../restaurants/components/restaurants-list';
 
 type Props = {
   params: {
@@ -13,6 +11,19 @@ type Props = {
     slug: string;
   };
 };
+
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('slug');
+
+  return (categories || []).flatMap((category) => [
+    { lang: 'en', slug: category.slug },
+    { lang: 'es', slug: category.slug }
+  ]);
+}
 
 async function getCategory(slug: string) {
   const { data: category } = await supabase
@@ -28,8 +39,8 @@ async function getCategory(slug: string) {
       meta_title_es,
       meta_description_en,
       meta_description_es,
-      restaurant_categories!inner (
-        restaurants!inner (
+      restaurant_categories (
+        restaurants (
           id,
           slug,
           name,
@@ -43,7 +54,7 @@ async function getCategory(slug: string) {
           rating,
           custom_score,
           tagline,
-          neighborhood:neighborhoods!inner (
+          neighborhoods (
             id,
             name,
             slug
@@ -55,17 +66,6 @@ async function getCategory(slug: string) {
     .single();
 
   return category;
-}
-
-export async function generateStaticParams() {
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('slug');
-
-  return (categories || []).flatMap((category) => [
-    { lang: 'en', slug: category.slug },
-    { lang: 'es', slug: category.slug }
-  ]);
 }
 
 export async function generateMetadata({ params: { lang, slug } }: Props): Promise<Metadata> {
@@ -102,12 +102,26 @@ export default async function CuisinePage({ params: { lang, slug } }: Props) {
     supabase.from('neighborhoods').select('*')
   ]);
 
+  // Transform the data structure to match what RestaurantsList expects
+  const restaurants = category.restaurant_categories?.map(rc => ({
+    ...rc.restaurants,
+    categories: [{
+      id: category.id,
+      name_en: category.name_en,
+      name_es: category.name_es
+    }],
+    neighborhood: rc.restaurants.neighborhoods
+  })) || [];
+
   return (
-    <CuisineContent 
-      category={category}
-      categories={categories || []}
-      neighborhoods={neighborhoods || []}
-      lang={lang}
-    />
+    <>
+      <RestaurantsList
+        initialRestaurants={restaurants}
+        initialCategories={categories || []}
+        initialNeighborhoods={neighborhoods || []}
+        lang={lang}
+        lockedFilters={{ categories: [category.id] }}
+      />
+    </>
   );
 }
