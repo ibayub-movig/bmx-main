@@ -3,8 +3,9 @@ import { Metadata } from 'next';
 import { Locale } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
-import { FilteredPageLayout } from '@/app/[lang]/components/filtered-page-layout';
-import { Breadcrumbs } from '@/components/breadcrumbs';
+import { CuisineContent } from '@/app/[lang]/cuisines/[slug]/cuisine-content';
+
+export const revalidate = 3600;
 
 type Props = {
   params: {
@@ -12,19 +13,6 @@ type Props = {
     slug: string;
   };
 };
-
-export const revalidate = 3600;
-
-export async function generateStaticParams() {
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('slug');
-
-  return (categories || []).flatMap((category) => [
-    { lang: 'en', slug: category.slug },
-    { lang: 'es', slug: category.slug }
-  ]);
-}
 
 async function getCategory(slug: string) {
   const { data: category } = await supabase
@@ -66,41 +54,34 @@ async function getCategory(slug: string) {
     .eq('slug', slug)
     .single();
 
-  if (!category) return null;
+  return category;
+}
 
-  const restaurants = category.restaurant_categories?.map(rc => ({
-    ...rc.restaurants,
-    categories: [{
-      id: category.id,
-      name_en: category.name_en,
-      name_es: category.name_es
-    }],
-    neighborhood: rc.restaurants.neighborhood
-  })) || [];
+export async function generateStaticParams() {
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('slug');
 
-  return {
-    ...category,
-    restaurants
-  };
+  return (categories || []).flatMap((category) => [
+    { lang: 'en', slug: category.slug },
+    { lang: 'es', slug: category.slug }
+  ]);
 }
 
 export async function generateMetadata({ params: { lang, slug } }: Props): Promise<Metadata> {
   const category = await getCategory(slug);
   
   if (!category) {
-    return {
-      title: '404 - Not Found'
-    };
+    return { title: '404 - Not Found' };
   }
   
   const baseUrl = 'https://www.bestcdmx.com';
-  const currentUrl = `${baseUrl}/${lang}/cuisines/${slug}`;
   
   return {
     title: category[`meta_title_${lang}`] || `${category[`name_${lang}`]} Restaurants in Mexico City | BestCDMX`,
     description: category[`meta_description_${lang}`] || category[`description_${lang}`] || undefined,
     alternates: {
-      canonical: currentUrl,
+      canonical: `${baseUrl}/${lang}/cuisines/${slug}`,
       languages: {
         en: `${baseUrl}/en/cuisines/${slug}`,
         es: `${baseUrl}/es/cuisines/${slug}`
@@ -121,22 +102,12 @@ export default async function CuisinePage({ params: { lang, slug } }: Props) {
     supabase.from('neighborhoods').select('*')
   ]);
 
-  const breadcrumbs = [
-    { href: `/${lang}`, label: 'Home' },
-    { href: `/${lang}/cuisines`, label: lang === 'en' ? 'Cuisines' : 'Cocinas' },
-    { label: category[`name_${lang}`] }
-  ];
-
   return (
-    <FilteredPageLayout
-      title={category[`name_${lang}`] || ''}
-      description={category[`description_${lang}`]}
-      initialRestaurants={category.restaurants}
-      initialCategories={categories || []}
-      initialNeighborhoods={neighborhoods || []}
+    <CuisineContent 
+      category={category}
+      categories={categories || []}
+      neighborhoods={neighborhoods || []}
       lang={lang}
-      lockedFilters={{ categories: [category.id] }}
-      breadcrumbs={<Breadcrumbs items={breadcrumbs} />}
     />
   );
 }
