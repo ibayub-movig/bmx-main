@@ -11,19 +11,74 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 export const revalidate = 3600;
 
-export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
+export async function generateMetadata({ 
+  params: { lang } 
+}: { 
+  params: { lang: Locale } 
+}): Promise<Metadata> {
+  const baseUrl = 'https://www.bestcdmx.com';
+  const currentUrl = lang === 'en' ? baseUrl : `${baseUrl}/${lang}`;
+
   return {
-    title: lang === 'en' ? 'BestCDMX - Discover the Best of Mexico City' : 'BestCDMX - Descubre lo Mejor de la Ciudad de México',
+    title: lang === 'en' 
+      ? 'BestCDMX - Discover the Best of Mexico City' 
+      : 'BestCDMX - Descubre lo Mejor de la Ciudad de México',
     description: lang === 'en' 
       ? 'Your ultimate guide to the best restaurants, attractions, and experiences in Mexico City. Discover local favorites and hidden gems.'
       : 'Tu guía definitiva de los mejores restaurantes, atracciones y experiencias en la Ciudad de México. Descubre favoritos locales y joyas ocultas.',
+    
     alternates: {
+      canonical: currentUrl,
       languages: {
-        en: '/en',
-        es: '/es',
+        en: `${baseUrl}`,
+        es: `${baseUrl}/es`,
       },
     },
-  };
+
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+
+    openGraph: {
+      title: lang === 'en' 
+        ? 'BestCDMX - Discover the Best of Mexico City' 
+        : 'BestCDMX - Descubre lo Mejor de la Ciudad de México',
+      description: lang === 'en'
+        ? 'Your ultimate guide to restaurants, attractions, and experiences in Mexico City'
+        : 'Tu guía definitiva de restaurantes, atracciones y experiencias en la Ciudad de México',
+      url: currentUrl,
+      siteName: 'BestCDMX',
+      locale: lang === 'en' ? 'en_US' : 'es_MX',
+      type: 'website',
+      alternateLocale: lang === 'en' ? ['es_MX'] : ['en_US'],
+    },
+
+    twitter: {
+      card: 'summary_large_image',
+      title: lang === 'en' 
+        ? 'BestCDMX - Best of Mexico City' 
+        : 'BestCDMX - Lo Mejor de CDMX',
+      description: lang === 'en'
+        ? 'Your ultimate guide to Mexico City'
+        : 'Tu guía definitiva de la Ciudad de México',
+    },
+    category: 'travel',
+    
+    formatDetection: {
+      telephone: true,
+      date: true,
+      address: true,
+      email: true,
+    },
+  }
 }
 
 export function generateStaticParams() {
