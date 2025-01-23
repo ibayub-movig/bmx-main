@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { generateRestaurantSchema} from '@/lib/schemas';
 import Image from 'next/image';
+import { Database } from '@/lib/database.types';
+import type { Tables, TablesInsert } from '@/lib/database.types';
 
 
 export async function generateStaticParams() {
@@ -27,7 +29,33 @@ export async function generateStaticParams() {
   );
 }
 
-async function getRestaurant(slug: string) {
+type RestaurantWithRelations = Tables<'restaurants'> & {
+  categories: Array<{ id: string; name_en: string; name_es: string }>;
+  neighborhood: {
+    id: string;
+    name: string;
+    slug: string;
+    created_at: string;
+    updated_at: string;
+    description_en: string | null;
+    description_es: string | null;
+    meta_title_en: string | null;
+    meta_title_es: string | null;
+    meta_description_en: string | null;
+    meta_description_es: string | null;
+  };
+  relatedRestaurants: Array<Tables<'restaurants'>>;
+  restaurant_types_junction: Array<{
+    type_id: string;
+    restaurant_types: {
+      id: string;
+      name_en: string | null;
+      name_es: string | null;
+    };
+  }>;
+};
+
+async function getRestaurant(slug: string): Promise<RestaurantWithRelations | null> {
   const { data: restaurant, error } = await supabase
     .from('restaurants')
     .select(`
@@ -51,20 +79,84 @@ async function getRestaurant(slug: string) {
       neighborhoods!inner (
         id,
         name,
-        slug
+        slug,
+        created_at,
+        updated_at,
+        description_en,
+        description_es,
+        meta_title_en,
+        meta_title_es,
+        meta_description_en,
+        meta_description_es
       )
     `)
     .eq('slug', slug)
     .eq('status', 'published')
     .single();
 
-  if (error) {
+  if (error || !restaurant) {
     console.error('Error fetching restaurant:', error);
     return null;
   }
 
-  // Transform the data to match the expected schema types
-  const transformedRestaurant = {
+  // Fetch related restaurants in same neighborhood
+  const { data: neighborhoodRestaurants } = await supabase
+    .from('restaurants')
+    .select('id, name, slug, image_url, custom_score, meta_description_en, meta_description_es, price_range')
+    .eq('neighborhood_id', restaurant.neighborhood_id)
+    .eq('status', 'published')
+    .neq('id', restaurant.id)
+    .limit(4);
+
+  // Fetch restaurants in same categories
+  const categoryIds = restaurant.restaurant_categories?.map(rc => rc.category_id) || [];
+  const { data: categoryRestaurants } = await supabase
+    .from('restaurants')
+    .select(`
+      id, 
+      name, 
+      slug, 
+      image_url, 
+      custom_score, 
+      meta_description_en, 
+      meta_description_es,
+      price_range
+    `)
+    .eq('status', 'published')
+    .neq('id', restaurant.id)
+    .filter('id', 'in', `(${
+      supabase
+        .from('restaurant_categories')
+        .select('restaurant_id')
+        .in('category_id', categoryIds)
+    })`)
+    .limit(8);
+
+  // Combine and deduplicate related restaurants
+  const relatedMap = new Map();
+  
+  // Add neighborhood restaurants with score 1
+  neighborhoodRestaurants?.forEach(r => {
+    relatedMap.set(r.id, { ...r, relevanceScore: 1 });
+  });
+
+  // Add or update category restaurants with higher score
+  categoryRestaurants?.forEach(r => {
+    if (relatedMap.has(r.id)) {
+      relatedMap.get(r.id).relevanceScore = 2; // Boost score if in both
+    } else {
+      relatedMap.set(r.id, { ...r, relevanceScore: 1 });
+    }
+  });
+
+  // Sort and limit related restaurants
+  const sortedRelated = Array.from(relatedMap.values())
+    .sort((a, b) => (b.relevanceScore - a.relevanceScore))
+    .slice(0, 4)
+    .map(({ relevanceScore, ...rest }) => rest);
+
+  // Transform the data with non-null assertions where we know the data exists
+  const transformedRestaurant: RestaurantWithRelations = {
     ...restaurant,
     categories: restaurant.restaurant_categories
       ?.filter(rc => rc.categories)
@@ -73,7 +165,9 @@ async function getRestaurant(slug: string) {
         name_en: rc.categories.name_en,
         name_es: rc.categories.name_es
       })) || [],
-    neighborhood: restaurant.neighborhoods
+    neighborhood: restaurant.neighborhoods!,
+    relatedRestaurants: sortedRelated || [],
+    restaurant_types_junction: restaurant.restaurant_types_junction || []
   };
 
   return transformedRestaurant;
@@ -237,7 +331,7 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {restaurant.categories?.map(category => (
+                      {restaurant.categories?.map((category: { id: string; name_en: string; name_es: string }) => (
                         <Badge key={category.id} variant="secondary">
                           {category[`name_${lang}` as const]}
                         </Badge>
@@ -290,7 +384,14 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
               <div className="space-y-8">
                 {/* Restaurant Types */}
                 <div className="flex flex-wrap gap-2">
-                  {restaurant.restaurant_types_junction?.map((junction) => (
+                  {restaurant.restaurant_types_junction?.map((junction: {
+                    type_id: string;
+                    restaurant_types: {
+                      id: string;
+                      name_en: string | null;
+                      name_es: string | null;
+                    };
+                  }) => (
                     <Badge 
                       key={junction.type_id} 
                       variant="outline"
@@ -705,6 +806,49 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
             </section>
           </div>
         </article>
+
+        {restaurant.relatedRestaurants && restaurant.relatedRestaurants.length > 0 && (
+  <section className="container mx-auto px-4 py-8 border-t">
+  <h2 className="text-2xl font-bold mb-6">
+    {lang === 'en' ? 'Similar Restaurants' : 'Restaurantes Similares'}
+  </h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    {restaurant.relatedRestaurants?.map((related: RelatedRestaurant) => (
+      <Link 
+        key={related.id}
+        href={`/${lang}/restaurants/${related.slug}`}
+        className="group hover:opacity-90 transition-opacity"
+      >
+        <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
+          <Image
+            src={related.image_url}
+            alt={related.name}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            className="object-cover"
+          />
+        </div>
+        <div className="mt-3">
+          <h3 className="font-medium mb-1">{related.name}</h3>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            {related.price_range && (
+              <span className="flex items-center">
+                <DollarSign className="w-4 h-4 mr-1" />
+                {related.price_range}
+              </span>
+            )}
+            {related.custom_score && (
+              <Badge variant="secondary">
+                {related.custom_score}
+              </Badge>
+            )}
+          </div>
+        </div>
+      </Link>
+    ))}
+  </div>
+</section>
+)}
       </div>
     </>
   );

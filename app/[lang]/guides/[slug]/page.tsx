@@ -67,26 +67,28 @@ export async function generateStaticParams() {
 }
 
 async function getGuide(slug: string): Promise<Guide | null> {
-  const { data: guide } = await supabase
+  const { data: guideData } = await supabase
     .from('guides')
     .select('*')
     .eq('slug', slug)
     .single();
   
-  if (!guide) return null;
+  if (!guideData) return null;
 
   const { data: items } = await supabase
     .from('guide_items')
     .select('*')
-    .eq('guide_id', guide.id)
+    .eq('guide_id', guideData.id)
     .eq('item_type', 'restaurant')
     .order('rank');
 
   if (!items?.length) {
     return {
-      ...guide,
+      ...guideData,
+      created_at: guideData.created_at || new Date().toISOString(),
+      updated_at: guideData.updated_at || new Date().toISOString(),
       items: []
-    };
+    } as Guide;
   }
 
   const { data: restaurants } = await supabase
@@ -109,20 +111,31 @@ async function getGuide(slug: string): Promise<Guide | null> {
     `)
     .in('id', items.map(item => item.item_id));
 
-  const itemsWithRestaurants: GuideItem[] = items.map(item => ({
+  const itemsWithRestaurants = items.map(item => ({
     guide_id: item.guide_id,
     item_type: item.item_type,
     item_id: item.item_id,
-    rank: item.rank,  // No need to handle null since we updated the type
+    rank: item.rank,
     highlight_en: item.highlight_en,
     highlight_es: item.highlight_es,
     restaurants: restaurants?.find(r => r.id === item.item_id)
   }));
 
-  return {
-    ...guide,
-    items: itemsWithRestaurants
-  };
+  const transformedGuide = {
+    ...guideData,
+    created_at: guideData.created_at || new Date().toISOString(),
+    updated_at: guideData.updated_at || new Date().toISOString(),
+    items: itemsWithRestaurants.map(item => ({
+      ...item,
+      restaurants: item.restaurants && {
+        ...item.restaurants,
+        description_en: item.restaurants.description_en || '',
+        description_es: item.restaurants.description_es || ''
+      }
+    }))
+  } as Guide;
+
+  return transformedGuide;
 }
 type Props = {
   params: {

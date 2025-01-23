@@ -41,22 +41,19 @@ async function getCategory(slug: string) {
       meta_title_es,
       meta_description_en,
       meta_description_es,
-      restaurant_categories (
-        restaurants (
-          id,
-          slug,
-          name,
-          latitude,
-          longitude,
-          image_url,
-          description_en,
-          description_es,
-          price_range,
-          neighborhood_id,
-          rating,
-          custom_score,
-          tagline,
-          neighborhoods (
+      restaurant_categories!inner (
+        restaurant_id,
+        restaurants!inner (
+          *,
+          restaurant_categories!inner (
+            category_id,
+            categories (
+              id,
+              name_en,
+              name_es
+            )
+          ),
+          neighborhoods!inner (
             id,
             name,
             slug
@@ -104,15 +101,22 @@ export default async function CuisinePage({ params: { lang, slug } }: Props) {
     supabase.from('neighborhoods').select('*')
   ]);
 
-  const restaurants = category.restaurant_categories?.map(rc => ({
-    ...rc.restaurants,
-    categories: [{
-      id: category.id,
-      name_en: category.name_en,
-      name_es: category.name_es
-    }],
-    neighborhood: rc.restaurants.neighborhoods
-  })) || [];
+  const restaurants = category.restaurant_categories?.map(rc => {
+    const restaurant = rc.restaurants;
+    return {
+      ...restaurant,
+      description_en: restaurant.description_en || '',
+      description_es: restaurant.description_es || '',
+      meta_description_en: restaurant.meta_description_en || '',
+      meta_description_es: restaurant.meta_description_es || '',
+      categories: restaurant.restaurant_categories?.map(cat => ({
+        id: cat.categories.id,
+        name_en: cat.categories.name_en,
+        name_es: cat.categories.name_es
+      })) || [],
+      neighborhood: restaurant.neighborhoods
+    };
+  }) || [];
 
   return (
     <div>
