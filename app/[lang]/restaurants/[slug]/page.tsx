@@ -813,7 +813,7 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
     {lang === 'en' ? 'Similar Restaurants' : 'Restaurantes Similares'}
   </h2>
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    {restaurant.relatedRestaurants?.map((related: RelatedRestaurant) => (
+    {restaurant.relatedRestaurants?.map((related: Tables<'restaurants'>) => (
       <Link 
         key={related.id}
         href={`/${lang}/restaurants/${related.slug}`}
