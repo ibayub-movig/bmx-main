@@ -76,16 +76,31 @@ async function getRestaurants() {
     return [];
   }
 
+  // Transform the data to ensure non-null values
   return restaurants.map(restaurant => ({
     ...restaurant,
+    // Ensure required string fields have default values
+    description_en: restaurant.description_en || '',
+    description_es: restaurant.description_es || '',
+    image_url: restaurant.image_url || '',
+    price_range: restaurant.price_range || '',
+    tagline: restaurant.tagline || '',
+    // Transform categories with non-null values
     categories: restaurant.restaurant_categories
-      ?.filter(rc => rc.categories) // Filter out any null categories
+      ?.filter(rc => rc.categories)
       .map(rc => ({
         id: rc.categories.id,
-        name_en: rc.categories.name_en,
-        name_es: rc.categories.name_es
+        name_en: rc.categories.name_en || '',
+        name_es: rc.categories.name_es || ''
       })) || [],
-    neighborhood: restaurant.neighborhoods
+    // Transform neighborhood with non-null values
+    neighborhood: {
+      id: restaurant.neighborhoods.id,
+      name: restaurant.neighborhoods.name,
+      slug: restaurant.neighborhoods.slug
+    },
+    // Remove the neighborhoods field since we're using neighborhood
+    neighborhoods: undefined
   }));
 }
 
