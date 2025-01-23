@@ -13,6 +13,8 @@ type Props = {
   };
 };
 
+export const revalidate = 3600; // Revalidate every hour
+
 export async function generateStaticParams() {
   const { data: categories } = await supabase
     .from('categories')
@@ -32,12 +34,12 @@ async function getCategory(slug: string) {
   const { data: category } = await supabase
     .from('categories')
     .select(`
-      id,
-      slug,
-      name_en,
-      name_es,
-      description_en,
-      description_es,
+        id,
+        slug,
+        name_en,
+        name_es,
+        description_en,
+        description_es,
       meta_title_en,
       meta_title_es,
       meta_description_en,
@@ -70,7 +72,8 @@ async function getCategory(slug: string) {
 
   if (!category) return null;
 
-  const restaurants = category.restaurant_categories?.map(rc => ({
+  // Sort restaurants by rating/custom_score for better initial presentation
+  const restaurants = (category.restaurant_categories?.map(rc => ({
     ...rc.restaurants,
     categories: [{
       id: category.id,
@@ -78,7 +81,11 @@ async function getCategory(slug: string) {
       name_es: category.name_es
     }],
     neighborhood: rc.restaurants.neighborhood
-  })) || [];
+  })) || []).sort((a, b) => {
+    const scoreA = a.custom_score || a.rating || 0;
+    const scoreB = b.custom_score || b.rating || 0;
+    return scoreB - scoreA;
+  });
 
   return {
     ...category,
@@ -95,14 +102,16 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
     };
   }
   
-  const titleFromDb = category[`meta_title_${lang}` as const];
-  const descriptionFromDb = category[`meta_description_${lang}` as const];
-  
-  const title = titleFromDb || category[`name_${lang}` as const];
-  const description = descriptionFromDb || (category[`description_${lang}` as const] ?? undefined);
   const baseUrl = 'https://www.bestcdmx.com';
   const currentUrl = `${baseUrl}/${lang}/cuisines/${slug}`;
   
+  const title = category[`meta_title_${lang}` as const] || 
+    `${category[`name_${lang}` as const]} Restaurants in Mexico City | BestCDMX`;
+  
+  const description = category[`meta_description_${lang}` as const] || 
+    category[`description_${lang}` as const] || 
+    `Find the best ${category[`name_${lang}` as const]} restaurants in Mexico City. Explore menus, reviews, and recommendations.`;
+
   return {
     title,
     description,
@@ -116,7 +125,7 @@ export async function generateMetadata({ params: { lang, slug } }: Props): Promi
       siteName: 'BestCDMX',
     },
     twitter: {
-      card: 'summary',  // Changed to 'summary' since we have no image
+      card: 'summary',
       title,
       description,
     },
@@ -142,29 +151,43 @@ export default async function CuisinePage({ params: { lang, slug } }: Props) {
     supabase.from('neighborhoods').select('*').order('name')
   ]);
 
+  const translations = {
+    en: {
+      browseAll: 'Browse all restaurants',
+      seeAll: 'See all restaurants',
+      cuisines: 'Cuisines',
+    },
+    es: {
+      browseAll: 'Ver todos los restaurantes',
+      seeAll: 'Ver todos los restaurantes',
+      cuisines: 'Cocinas',
+    }
+  };
+
   return (
     <div>
       <div className="border-b">
-        <nav className="container mx-auto px-4 py-3">
+        <nav className="container mx-auto px-4 py-3" aria-label="Breadcrumb">
           <ol className="flex items-center space-x-2 text-sm">
             <li>
               <Link href={`/${lang}`} className="text-muted-foreground hover:text-foreground flex items-center">
                 <Home className="h-4 w-4" />
+                <span className="sr-only">Home</span>
               </Link>
             </li>
             <li>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </li>
             <li>
               <Link 
                 href={`/${lang}/cuisines`} 
                 className="text-muted-foreground hover:text-foreground"
               >
-                {lang === 'en' ? 'Cuisines' : 'Cocinas'}
+                {translations[lang].cuisines}
               </Link>
             </li>
             <li>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </li>
             <li>
               <span className="font-medium">
@@ -191,7 +214,7 @@ export default async function CuisinePage({ params: { lang, slug } }: Props) {
             href={`/${lang}/restaurants`}
             className="text-primary hover:underline"
           >
-            {lang === 'en' ? 'Browse all restaurants' : 'Ver todos los restaurantes'} →
+            {translations[lang].browseAll} →
           </Link>
         </p>
         
