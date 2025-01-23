@@ -5,14 +5,53 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight, Home, Utensils } from 'lucide-react';
 import { Metadata } from 'next';
 
+type Props = {
+  params: {
+    lang: Locale
+  }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang } = params;
+  const baseUrl = 'https://www.bestcdmx.com';
+  const currentPath = `/${lang}/cuisines`;
+
+  const titles = {
+    en: 'Restaurant Cuisines in Mexico City | Find Best CDMX Restaurants by Food Type',
+    es: 'Tipos de Cocina en CDMX | Encuentra los Mejores Restaurantes por Tipo de Comida'
+  };
+
+  const descriptions = {
+    en: 'Explore Mexico City restaurants by cuisine type. From traditional Mexican to international cuisines, discover the best restaurants for every food type in CDMX.',
+    es: 'Explora restaurantes en CDMX por tipo de cocina. Desde cocina mexicana tradicional hasta cocinas internacionales, descubre los mejores restaurantes para cada tipo de comida.'
+  };
+
+  return {
+    title: titles[lang],
+    description: descriptions[lang],
+    alternates: {
+      canonical: `${baseUrl}${currentPath}`,
+      languages: {
+        en: `${baseUrl}/en/cuisines`,
+        es: `${baseUrl}/es/cuisines`,
+      }
+    },
+    openGraph: {
+      title: titles[lang],
+      description: descriptions[lang],
+      url: `${baseUrl}${currentPath}`,
+      siteName: 'BestCDMX',
+      locale: lang,
+      alternateLocale: lang === 'en' ? 'es' : 'en',
+      type: 'website'
+    }
+  };
+}
+
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
-export const metadata: Metadata = {
-  title: 'Cuisines | BestCDMX',
-  description: 'Explore different cuisines in Mexico City',
-};
 
 async function getCategories() {
   const { data: categories } = await supabase

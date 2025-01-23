@@ -295,7 +295,9 @@ export default async function GuidePage({ params: { lang, slug } }: Props) {
                           src={restaurant.image_url} 
                           alt={restaurant.name}
                           fill
+                          sizes="(min-width: 768px) 50vw, 100vw"
                           className="object-cover"
+                          quality={85}
                         />
                       </div>
                       <div className="flex flex-col justify-center">

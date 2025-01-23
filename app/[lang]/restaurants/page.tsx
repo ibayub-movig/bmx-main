@@ -3,9 +3,38 @@ import { supabase } from '@/lib/supabase';
 import { RestaurantsList } from './components/restaurants-list';
 import { ChevronRight, Home } from 'lucide-react';
 import Link from 'next/link';
+import { Metadata } from 'next';
 
+type Props = {
+  params: {
+    lang: string
+  }
+}
+
+// Metadata generation
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang } = params
+  const baseUrl = 'https://www.bestcdmx.com'
+  const currentPath = `/${lang}/restaurants`
+  
+  return {
+    title: lang === 'en' ? 'Best Restaurants in Mexico City' : 'Mejores Restaurantes en CDMX',
+    description: lang === 'en' 
+      ? 'Discover the best restaurants in Mexico City, from fine dining to local gems'
+      : 'Descubre los mejores restaurantes en CDMX, desde alta cocina hasta joyas locales',
+    alternates: {
+      canonical: `${baseUrl}${currentPath}`,
+      languages: {
+        'en': `${baseUrl}/en/restaurants`,
+        'es': `${baseUrl}/es/restaurants`
+      }
+    }
+  }
+}
+
+// Static params generation
 export function generateStaticParams() {
-  return locales.map((lang) => ({ lang }));
+  return [{ lang: 'en' }, { lang: 'es' }]
 }
 
 async function getRestaurants() {

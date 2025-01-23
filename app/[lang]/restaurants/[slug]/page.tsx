@@ -211,12 +211,14 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
         <article className="min-h-screen">
           {/* Hero Section */}
           <div className="relative h-[50vh] min-h-[400px] w-full">
-          <Image
+            <Image
               src={restaurant.image_url}
               alt={restaurant.name}
               fill
               priority
+              sizes="100vw"
               className="object-cover"
+              quality={90}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-8 text-white">

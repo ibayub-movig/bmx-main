@@ -5,7 +5,12 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: { 
-    domains: ['api.mapbox.com'],
+    domains: [
+      'api.mapbox.com',
+      'media.cntraveler.com',
+      'bridgesandballoons.com',
+      'assets.vogue.com',
+      'images.unsplash.com'],
     remotePatterns: [
       {
         protocol: 'https',

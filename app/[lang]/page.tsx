@@ -8,7 +8,7 @@ import { locales } from '@/lib/i18n';
 import { SubscribeButton } from './components/subscribe-button';
 import { supabase } from '@/lib/supabase';
 import { Metadata } from 'next';
-
+import Image from 'next/image';
 export const revalidate = 3600;
 
 export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
@@ -67,7 +67,12 @@ export default async function Home({ params: { lang } }: { params: { lang: Local
       description: lang === 'en' 
         ? 'Upscale dining and luxury shopping'
         : 'Restaurantes exclusivos y tiendas de lujo',
-      image: 'https://media.cntraveler.com/photos/5df7d20d70aab000096fdd11/master/w_320%2Cc_limit/Antara-Fashion-Hall_Leila-Ashtari_2019_AntaraFH_CNT_CDMX_DSF4974_FLAT.jpg?auto=format&fit=crop&w=800&q=80'
+      image: {
+        src: 'https://media.cntraveler.com/photos/5df7d20d70aab000096fdd11/master/w_320%2Cc_limit/Antara-Fashion-Hall_Leila-Ashtari_2019_AntaraFH_CNT_CDMX_DSF4974_FLAT.jpg',
+        width: 800,
+        height: 600,
+        alt: 'Polanco neighborhood in Mexico City featuring luxury shopping and restaurants'
+      }
     },
     {
       name: 'Condesa',
@@ -75,7 +80,12 @@ export default async function Home({ params: { lang } }: { params: { lang: Local
       description: lang === 'en'
         ? 'Hip cafes and art deco architecture'
         : 'Cafés de moda y arquitectura art deco',
-      image: 'https://bridgesandballoons.com/Images/2016/04/Things_to_do_in_Condesa-6.jpg?auto=format&fit=crop&w=800&q=80'
+      image: {
+        src: 'https://bridgesandballoons.com/Images/2016/04/Things_to_do_in_Condesa-6.jpg',
+        width: 800,
+        height: 600,
+        alt: 'Condesa neighborhood in Mexico City with art deco buildings and cafes'
+      }
     },
     {
       name: 'Roma Norte',
@@ -83,7 +93,12 @@ export default async function Home({ params: { lang } }: { params: { lang: Local
       description: lang === 'en'
         ? 'Trendy restaurants and boutiques'
         : 'Restaurantes y boutiques de moda',
-      image: 'https://assets.vogue.com/photos/5aac1f567b28220bee117065/master/w_2560%2Cc_limit/00-story-image-roma-neighborhood-mexico-city-guide.jpg?fit=crop&w=800&q=80'
+      image: {
+        src: 'https://assets.vogue.com/photos/5aac1f567b28220bee117065/master/w_2560%2Cc_limit/00-story-image-roma-neighborhood-mexico-city-guide.jpg',
+        width: 800,
+        height: 600,
+        alt: 'Roma Norte neighborhood in Mexico City featuring trendy streets and restaurants'
+      }
     }
   ];
 
@@ -153,11 +168,14 @@ export default async function Home({ params: { lang } }: { params: { lang: Local
               >
                 <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow duration-300">
                   <div className="aspect-[4/3] overflow-hidden">
-                    <img
-                      src={neighborhood.image}
-                      alt={neighborhood.name}
+                    <Image
+                      src={neighborhood.image.src}
+                      alt={neighborhood.image.alt}
+                      width={neighborhood.image.width}
+                      height={neighborhood.image.height}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
+                      sizes="(min-width: 1280px) 384px, (min-width: 1024px) calc(33.33vw - 32px), (min-width: 768px) calc(50vw - 48px), calc(100vw - 32px)"
                     />
                   </div>
                   <CardHeader>
@@ -197,11 +215,13 @@ export default async function Home({ params: { lang } }: { params: { lang: Local
             >
               <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow duration-300">
                 <div className="aspect-[4/3] overflow-hidden relative">
-                  <img
+                  <Image
                     src={restaurant.image_url || ''}
                     alt={restaurant.name || ''}
+                    fill
+                    sizes="(min-width: 1280px) 384px, (min-width: 1024px) calc(33.33vw - 32px), (min-width: 768px) calc(50vw - 48px), calc(100vw - 32px)"
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    loading="lazy"
+                    quality={85}
                   />
                   {restaurant.custom_score && (
                     <div className="absolute top-2 right-2">

@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { RestaurantFilters, type Filters } from './restaurant-filters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDebounce } from '@/hooks/use-debounce';
+import Image from 'next/image';
 
 type Restaurant = {
   id: string;
@@ -43,11 +44,13 @@ function RestaurantCard({ restaurant, lang }: { restaurant: Restaurant; lang: Lo
       <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
         <CardHeader className="p-0 relative overflow-hidden">
           <div className="overflow-hidden relative">
-            <div className="aspect-[4/3]">
-              <img 
+            <div className="aspect-[4/3] relative">
+              <Image 
                 src={restaurant.image_url} 
                 alt={restaurant.name} 
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                fill
+                sizes="(min-width: 1280px) 384px, (min-width: 1024px) calc(33.33vw - 32px), (min-width: 768px) calc(50vw - 48px), calc(100vw - 32px)"
+                className="object-cover transition-transform duration-300 group-hover:scale-110"
               />
             </div>
             <div className="absolute top-2 right-2 flex gap-2">
