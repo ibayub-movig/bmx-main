@@ -55,21 +55,35 @@ export function Footer({ lang }: FooterProps) {
 
           {/* Neighborhoods Column */}
           <div>
-            <h2 className="font-semibold text-lg mb-4 flex items-center">
-              <MapPin className="w-5 h-5 mr-2" />
-              {lang === 'en' ? 'Neighborhoods' : 'Colonias'}
-            </h2>
-            <ul className="space-y-2">
-              <li>
-                <Link 
-                  href={`/${lang}/neighborhoods`}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {lang === 'en' ? 'All Neighborhoods' : 'Todas las Colonias'}
-                </Link>
-              </li>
-            </ul>
-          </div>
+ <h2 className="font-semibold text-lg mb-4 flex items-center">
+   <MapPin className="w-5 h-5 mr-2" />
+   {lang === 'en' ? 'Neighborhoods' : 'Colonias'}
+ </h2>
+ <ul className="space-y-2">
+   <li>
+     <Link 
+       href={`/${lang}/neighborhoods`}
+       className="text-muted-foreground hover:text-foreground transition-colors"
+     >
+       {lang === 'en' ? 'All Neighborhoods' : 'Todas las Colonias'}
+     </Link>
+   </li>
+   {[
+     { en: 'Roma Norte', es: 'Roma Norte', slug: 'roma-norte' },
+     { en: 'Polanco', es: 'Polanco', slug: 'polanco' },
+     { en: 'Condesa', es: 'Condesa', slug: 'condesa' }
+   ].map((n) => (
+     <li key={n.slug}>
+       <Link
+         href={`/${lang}/neighborhoods/${n.slug}`}
+         className="text-muted-foreground hover:text-foreground transition-colors"
+       >
+         {lang === 'en' ? n.en : n.es}
+       </Link>
+     </li>
+   ))}
+ </ul>
+</div>
 
           {/* About Column */}
           <div>

@@ -29,7 +29,7 @@ export const generateRestaurantSchema = (restaurant: RestaurantWithRelations, la
     '@type': 'Restaurant',
     name: restaurant.name,
     description: restaurant[`description_${lang}` as const],
-    url: `https://bestcdmx.com/${lang}/restaurants/${restaurant.slug}`,
+    url: `https://www.bestcdmx.com/${lang}/restaurants/${restaurant.slug}`,
     image: restaurant.image_url,
     address: {
       '@type': 'PostalAddress',

@@ -11,6 +11,8 @@ import { generateRestaurantSchema} from '@/lib/schemas';
 import Image from 'next/image';
 import { Database } from '@/lib/database.types';
 import type { Tables, TablesInsert } from '@/lib/database.types';
+import { SubscribeButton } from '../../components/subscribe-button';
+
 
 
 export async function generateStaticParams() {
@@ -655,34 +657,50 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
             </section>
 
             <section id="location" className="scroll-mt-24">
-              <h2 className="text-2xl font-bold mb-6">
-                {lang === 'en' ? 'Location' : 'Ubicación'}
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">
-                    {lang === 'en' ? 'Address' : 'Dirección'}
-                  </h3>
-                  <p className="text-muted-foreground">{restaurant.address}</p>
-                </div>
-                {restaurant.latitude && restaurant.longitude && (
-                  <Link
-                    href={`https://www.google.com/maps?q=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block aspect-[16/9] w-full rounded-lg overflow-hidden border hover:opacity-95 transition-opacity"
-                  >
-                  <Image 
-                    src={`https://api.mapbox.com/styles/v1/mapbox/light-v11/static/pin-l+f43f5e(${restaurant.longitude},${restaurant.latitude})/${restaurant.longitude},${restaurant.latitude},14,0/800x450@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}
-                    alt={`Map showing location of ${restaurant.name}`}
-                    width={800}
-                    height={450}
-                    className="w-full h-full object-cover"
-                  />
-                  </Link>
-                )}
-              </div>
-            </section>
+ <h2 className="text-2xl font-bold mb-6">
+   {lang === 'en' ? 'Location' : 'Ubicación'}
+ </h2>
+ <div className="grid md:grid-cols-2 gap-6">
+   <div className="space-y-4">
+     <div>
+       <h3 className="text-lg font-semibold mb-2">
+         {lang === 'en' ? 'Address' : 'Dirección'}
+       </h3>
+       <p className="text-muted-foreground">{restaurant.address}</p>
+     </div>
+     {restaurant.phone_number && (
+       <div>
+         <h3 className="text-lg font-semibold mb-2">
+           {lang === 'en' ? 'Phone' : 'Teléfono'}
+         </h3>
+         <a 
+           href={`tel:${restaurant.phone_number}`}
+           className="text-muted-foreground hover:text-primary"
+         >
+           {restaurant.phone_number}
+         </a>
+       </div>
+     )}
+   </div>
+
+   {restaurant.latitude && restaurant.longitude && (
+     <Link
+       href={`https://www.google.com/maps?q=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`}
+       target="_blank"
+       rel="noopener noreferrer" 
+       className="block aspect-[4/3] rounded-lg overflow-hidden border hover:opacity-95 transition-opacity"
+     >
+       <Image 
+         src={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l-restaurant+f43f5e(${restaurant.longitude},${restaurant.latitude})/${restaurant.longitude},${restaurant.latitude},15,0,45/400x300@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}
+         alt={`Map showing location of ${restaurant.name}`}
+         width={400}
+         height={300}
+         className="w-full h-full object-cover"
+       />
+     </Link>
+   )}
+ </div>
+</section>
 
             <section id="contact" className="scroll-mt-24">
               <h2 className="text-2xl font-bold mb-6">
@@ -849,6 +867,21 @@ export default async function RestaurantPage({ params: { lang, slug } }: Props) 
   </div>
 </section>
 )}
+{/* Subscribe Banner */}
+<div className="container mx-auto px-4 py-8">
+  <div className="rounded-lg bg-primary p-8 text-primary-foreground">
+    <div className="max-w-3xl mx-auto text-center space-y-6">
+      <h2 className="text-3xl font-bold">
+        {lang === 'en'
+          ? 'Find your next favorite place'
+          : 'Encuentra tu próximo lugar favorito'}
+      </h2>
+      <div className="flex justify-center pt-2">
+        <SubscribeButton lang={lang} variant="hero" />
+      </div>
+    </div>
+  </div>
+</div>
       </div>
     </>
   );

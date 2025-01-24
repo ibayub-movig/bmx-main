@@ -1,5 +1,5 @@
 import { Locale, dictionary } from '@/lib/i18n';
-import { MapPin, Utensils, Music, Palette, Search, Mail, ArrowRight, Building2, Award, CalendarClock } from 'lucide-react';
+import { MapPin, Utensils, BookOpen, Music, Palette, Search, Mail, ArrowRight, Building2, Award, CalendarClock } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { SubscribeButton } from './components/subscribe-button';
 import { supabase } from '@/lib/supabase';
 import { Metadata } from 'next';
 import Image from 'next/image';
-export const revalidate = 3600;
+export const revalidate = 1800;
 
 export async function generateMetadata({ 
   params: { lang } 
@@ -246,6 +246,64 @@ export default async function Home({ params: { lang } }: { params: { lang: Local
           </div>
         </div>
       </section>
+
+{/* Editorial Guides */}
+<section className="container mx-auto px-4 py-16">
+ <div className="max-w-4xl mx-auto">
+   <div className="text-center mb-12">
+     <h2 className="text-3xl font-bold mb-4">
+       {lang === 'en' ? 'CDMX Guides' : 'Guías de CDMX'}
+     </h2>
+     <p className="text-lg text-muted-foreground">
+       {lang === 'en' 
+         ? 'Curated guides to help you discover the best of Mexico City dining'
+         : 'Guías seleccionadas para ayudarte a descubrir lo mejor de la gastronomía en CDMX'}
+     </p>
+   </div>
+
+   <div className="grid grid-cols-1 gap-8">
+     <Card className="group hover:shadow-lg transition-shadow">
+       <Link href={`/${lang}/guides/top-restaurants`}>
+         <div className="md:flex">
+           <div className="md:w-1/2 aspect-[4/3] relative">
+             <Image
+               src="https://exqhoigbuistjbcrdpwy.supabase.co/storage/v1/object/public/guide-covers/toprestaurants.jpg" 
+               alt="Top restaurants in Mexico City"
+               fill
+               className="object-cover"
+             />
+           </div>
+           <div className="p-6 md:w-2/3">
+             <CardTitle className="mb-2 group-hover:text-primary transition-colors">
+               {lang === 'en' ? 'The Top Restaurants in Mexico City' : 'Los Mejores Restaurantes en CDMX'}
+             </CardTitle>
+             <CardDescription className="mb-4">
+               {lang === 'en'
+                 ? 'From world-renowned fine dining to hidden gems, discover must-try restaurants in Mexico City'
+                 : 'Desde restaurantes de alta cocina de renombre mundial hasta joyas ocultas, descubre nuestra lista'}
+             </CardDescription>
+             <div className="flex items-center text-primary">
+               <span className="mr-2">
+                 {lang === 'en' ? 'Read the guide' : 'Leer la guía'}
+               </span>
+               <ArrowRight className="w-4 h-4" />
+             </div>
+           </div>
+         </div>
+       </Link>
+     </Card>
+
+     <div className="text-center">
+       <Button variant="outline" asChild>
+         <Link href={`/${lang}/guides`}>
+           <BookOpen className="w-4 h-4 mr-2" />
+           {lang === 'en' ? 'Browse All Guides' : 'Ver Todas las Guías'}
+         </Link>
+       </Button>
+     </div>
+   </div>
+ </div>
+</section>
 
       {/* Featured Restaurants */}
       <section className="container mx-auto px-4 py-16">
