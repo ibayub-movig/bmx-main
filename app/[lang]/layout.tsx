@@ -10,15 +10,16 @@ export default function LangLayout({
   children: React.ReactNode;
   params: { lang: Locale };
 }) {
-
   const t = dictionary[lang];
   if (!t) return null;
-
+  
   return (
-    <>
-      <NavigationMenu lang={lang} dictionary={t} />
-      <main className="min-h-screen">{children}</main>
-      <Footer lang={lang} />
-    </>
+    <html lang={lang}>
+      <body>
+        <NavigationMenu lang={lang} dictionary={t} />
+        <main className="min-h-screen">{children}</main>
+        <Footer lang={lang} />
+      </body>
+    </html>
   );
 }

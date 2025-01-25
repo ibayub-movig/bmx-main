@@ -11,8 +11,8 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
 const BASE_URL = 'https://www.bestcdmx.com'
 
-if (!GA_ID) console.warn('Google Analytics ID is not defined in environment variables')
-if (!GTM_ID) console.warn('Google Tag Manager ID is not defined in environment variables')
+if (!GA_ID) console.warn('Google Analytics ID is not defined')
+if (!GTM_ID) console.warn('Google Tag Manager ID is not defined')
 
 export const metadata: Metadata = {
  metadataBase: new URL(BASE_URL),
@@ -26,13 +26,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
  children,
- params,
 }: {
- children: React.ReactNode;
- params: { lang?: string };
+ children: React.ReactNode
 }) {
  return (
-   <html lang={params?.lang || 'es'} suppressHydrationWarning>
+   <html suppressHydrationWarning>
      <head>
        <link rel="alternate" hrefLang="en" href={`${BASE_URL}/en`} />
        <link rel="alternate" hrefLang="es" href={`${BASE_URL}/es`} />
