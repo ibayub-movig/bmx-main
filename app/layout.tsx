@@ -1,10 +1,9 @@
-// app/layout.tsx
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import Script from 'next/script'
-import {Analytics} from '@vercel/analytics/next'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -44,7 +43,9 @@ export default function RootLayout({
   return (
     <html lang={lang} suppressHydrationWarning>
       <head>
-        {/* Schema.org markup for Google */}
+        <link rel="alternate" hrefLang="en" href={`${BASE_URL}/en`} />
+        <link rel="alternate" hrefLang="es" href={`${BASE_URL}/es`} />
+        <link rel="alternate" hrefLang="x-default" href={BASE_URL} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
