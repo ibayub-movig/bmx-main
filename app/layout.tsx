@@ -26,11 +26,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
  children,
+ params
 }: {
  children: React.ReactNode
+ params: { lang?: string };
 }) {
  return (
-   <html suppressHydrationWarning>
+  <html lang={params?.lang || 'en'} suppressHydrationWarning>
      <head>
        <link rel="alternate" hrefLang="en" href={`${BASE_URL}/en`} />
        <link rel="alternate" hrefLang="es" href={`${BASE_URL}/es`} />
@@ -64,6 +66,7 @@ export default function RootLayout({
        )}
      </head>
      <body className={inter.className}>
+     {children}
        {GTM_ID && (
          <noscript>
            <iframe 
@@ -74,7 +77,6 @@ export default function RootLayout({
            />
          </noscript>
        )}
-       {children}
        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
        <Analytics/>
      </body>

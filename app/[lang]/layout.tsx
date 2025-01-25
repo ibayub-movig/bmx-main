@@ -14,12 +14,10 @@ export default function LangLayout({
   if (!t) return null;
   
   return (
-    <html lang={lang}>
-      <body>
-        <NavigationMenu lang={lang} dictionary={t} />
-        <main className="min-h-screen">{children}</main>
-        <Footer lang={lang} />
-      </body>
-    </html>
+    <>
+      <NavigationMenu lang={lang} dictionary={t} />
+      <main className="min-h-screen">{children}</main>
+      <Footer lang={lang} />
+    </>
   );
 }
